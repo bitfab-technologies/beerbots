@@ -39,16 +39,18 @@ telemetryData roverTelemetry;
 volatile uint16_t rotation_a = 0;
 volatile uint16_t rotation_b = 0;
 
-/*hall_a keeps track of hall effect sensor a's position*/
-void hall_a() {
-    if(digitalRead(HALL_2A) == HIGH)
+/*readMotorQuadratureEncoder1 keeps track 
+of hall effect sensor a's position*/
+void readMotorQuadratureEncoder1() {
+    if(digitalRead(HALL_1B) == HIGH)
         rotation_a++;
     else
         rotation_a--;
 }
 
-/*hall_b keeps track of hall effect sensor b's position*/
-void hall_b() {
+/*readMotorQuadratureEncoder2 keeps track 
+of hall effect sensor b's position*/
+void readMotorQuadratureEncoder2() {
     if(digitalRead(HALL_2B) == HIGH)
         rotation_b++;
     else
@@ -140,3 +142,4 @@ void Receive()
   }
   
 }
+
