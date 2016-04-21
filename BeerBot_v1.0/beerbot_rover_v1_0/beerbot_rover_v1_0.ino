@@ -10,6 +10,10 @@ int ENA = 5;
 int TN3 = 24;
 int TN4 = 25;
 int ENB = 4;
+int HALL_1A = 27;
+int HALL_2A = 26;
+int HALL_1B = 29;
+int HALL_2B = 28;
 
 typedef enum {
   kMotorForward,
@@ -32,8 +36,26 @@ struct telemetryData  // Data from rover
 };
 telemetryData roverTelemetry;
 
-void setup() {
+volatile uint16_t rotation_a = 0;
+volatile uint16_t rotation_b = 0;
 
+/*hall_a keeps track of hall effect sensor a's position*/
+void hall_a() {
+    if(digitalRead(HALL_2A) == HIGH)
+        rotation_a++;
+    else
+        rotation_a--;
+}
+
+/*hall_b keeps track of hall effect sensor b's position*/
+void hall_b() {
+    if(digitalRead(HALL_2B) == HIGH)
+        rotation_b++;
+    else
+        rotation_b--;
+}
+
+void setup() {
   // 24L01 initialization
   Mirf.cePin = 53;
   Mirf.csnPin = 48;
@@ -53,6 +75,9 @@ void setup() {
     pinMode(ENB, OUTPUT);
     //pinMode(18, INPUT);
     //pinMode(2, INPUT);
+
+    PCattachInterrupt(HALL_1A, hall_a, FALLING);
+    PCattachInterrupt(HALL_1B, hall_b, FALLING);
 }
 
 void loop() {
