@@ -76,8 +76,8 @@ void setup() {
     //pinMode(18, INPUT);
     //pinMode(2, INPUT);
 
-    PCattachInterrupt(HALL_1A, hall_a, FALLING);
-    PCattachInterrupt(HALL_1B, hall_b, FALLING);
+    attachInterrupt(HALL_1A, hall_a, FALLING);
+    attachInterrupt(HALL_1B, hall_b, FALLING);
 }
 
 void loop() {
