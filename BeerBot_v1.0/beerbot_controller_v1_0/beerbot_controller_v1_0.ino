@@ -29,7 +29,8 @@ controlData roverControlData;
 
 struct telemetryData  // Data from rover
 {
-  uint16_t dummy;
+  uint16_t rpm_a;
+  uint16_t rpm_b;
 };
 telemetryData roverTelemetry;
 
@@ -104,6 +105,9 @@ void loop() {
     lcd.print(" !");
     lcd.print("    ");
   }
+
+  lcd.setCursor(10,0);
+  lcd.print(int(roverTelemetry.rpm_a));
   
   lcd.setCursor(0, 1);
   if(kMotorForward == roverControlData.rightDirection) {
@@ -119,4 +123,7 @@ void loop() {
     lcd.print(" !");
     lcd.print("    ");
   }
+
+  lcd.setCursor(10,1);
+  lcd.print(int(roverTelemetry.rpm_b));
 }

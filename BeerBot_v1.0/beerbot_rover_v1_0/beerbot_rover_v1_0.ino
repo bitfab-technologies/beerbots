@@ -15,10 +15,16 @@ int HALL_2A = 26;
 int HALL_1B = 29;
 int HALL_2B = 28;
 
-typedef enum {
-  kMotorForward,
-  kMotorReverse
-} MotorDirection;
+// ms for each frame, 50ms gives us 20Hz update rate...
+// the max RPM of the motor is 249, and the Nyquist 
+// frequency is therefor 6.7Hz, which translates to 
+// 149.25373ms sampling period maximum. 
+#define FRAME_LEN    50
+unsigned long last;  // last time our loop ran
+
+#define ENCODER_PULSES_PER_MOTOR_TURN 275
+
+typedef enum { kMotorForward, kMotorReverse } MotorDirection;
 
 struct controlData  // Data from remote control
 {
@@ -32,7 +38,8 @@ controlData roverControlData;
 
 struct telemetryData  // Data from rover
 {
-  uint16_t dummy;
+  uint16_t rpm_a;
+  uint16_t rpm_b;
 };
 telemetryData roverTelemetry;
 
@@ -42,22 +49,22 @@ volatile uint16_t rotation_b = 0;
 /*readMotorQuadratureEncoder1 keeps track 
 of hall effect sensor a's position*/
 void readMotorQuadratureEncoder1() {
-    if(digitalRead(HALL_1B) == HIGH)
-        rotation_a++;
-    else
-        rotation_a--;
+    if (digitalRead(HALL_1B) == HIGH) rotation_a++;
+    else rotation_a--;
 }
 
 /*readMotorQuadratureEncoder2 keeps track 
 of hall effect sensor b's position*/
 void readMotorQuadratureEncoder2() {
-    if(digitalRead(HALL_2B) == HIGH)
-        rotation_b++;
-    else
-        rotation_b--;
+    if (digitalRead(HALL_2B) == HIGH) rotation_b++;
+    else rotation_b--;
 }
 
 void setup() {
+
+  // used for sampling time (as of this writing, it is 20Hz)
+  last = millis();
+
   // 24L01 initialization
   Mirf.cePin = 53;
   Mirf.csnPin = 48;
@@ -67,22 +74,27 @@ void setup() {
   Mirf.payload = 16;
   Mirf.config();
 
-  roverTelemetry.dummy = 1;
+  pinMode(TN1, OUTPUT);
+  pinMode(TN2, OUTPUT);
+  pinMode(TN3, OUTPUT);
+  pinMode(TN4, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  //pinMode(18, INPUT);
+  //pinMode(2, INPUT);
 
-    pinMode(TN1, OUTPUT);
-    pinMode(TN2, OUTPUT);
-    pinMode(TN3, OUTPUT);
-    pinMode(TN4, OUTPUT);
-    pinMode(ENA, OUTPUT);
-    pinMode(ENB, OUTPUT);
-    //pinMode(18, INPUT);
-    //pinMode(2, INPUT);
-
-    attachInterrupt(HALL_1A, hall_a, FALLING);
-    attachInterrupt(HALL_1B, hall_b, FALLING);
+  attachInterrupt(HALL_1A, readMotorQuadratureEncoder1, FALLING);
+  attachInterrupt(HALL_1B, readMotorQuadratureEncoder2, FALLING);
 }
 
 void loop() {
+    // spin to match desired sample rate
+    while(millis() < last + FRAME_LEN);
+    last = millis();
+
+    // current motor telemetry
+    roverTelemetry.rpm_a = (rotation_a / ENCODER_PULSES_PER_MOTOR_TURN) / (millis() - last);
+    roverTelemetry.rpm_b = (rotation_b / ENCODER_PULSES_PER_MOTOR_TURN) / (millis() - last);
 
     Receive();
 
